@@ -1,11 +1,22 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# Database URL - Change this to your PostgreSQL connection or use SQLite
-# PostgreSQL: "postgresql://postgres:yourpassword@localhost/beauty_products"
-# SQLite: "sqlite:///./beauty_products.db"
-SQLALCHEMY_DATABASE_URL = "sqlite:///./beauty_products.db"
+# Get database URL from environment variable (for production)
+# Falls back to SQLite for local development
+SQLALCHEMY_DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "sqlite:///./beauty_products.db"
+)
+
+# Neon requires sslmode=require, but SQLAlchemy uses ssl_mode
+# Replace if needed
+if SQLALCHEMY_DATABASE_URL.startswith("postgresql"):
+    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace(
+        "sslmode=require", 
+        ""
+    )
 
 # Create engine
 if "sqlite" in SQLALCHEMY_DATABASE_URL:
@@ -16,13 +27,9 @@ if "sqlite" in SQLALCHEMY_DATABASE_URL:
 else:
     engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
-# Create session maker
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Create base class for models
 Base = declarative_base()
 
-# Dependency to get database session
 def get_db():
     db = SessionLocal()
     try:

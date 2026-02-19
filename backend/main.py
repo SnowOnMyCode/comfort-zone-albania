@@ -17,7 +17,7 @@ app = FastAPI(
 # Enable CORS for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],  # React/Vite dev servers
+    allow_origins=["http://localhost:3000", "http://localhost:5173", "https://*.vercel.app", "*"],  # React/Vite dev servers
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
