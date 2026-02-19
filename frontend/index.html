@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beauty Products Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div id="app" class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-gray-800 text-white">
+            <div class="p-4">
+                <h2 class="text-2xl font-bold">Beauty Products</h2>
+            </div>
+            <nav class="mt-8">
+                <a href="#dashboard" onclick="showPage('dashboard')" class="block py-2 px-4 hover:bg-gray-700">Dashboard</a>
+                <a href="#products" onclick="showPage('products')" class="block py-2 px-4 hover:bg-gray-700">Products</a>
+                <a href="#bulk-update" onclick="showPage('bulk-update')" class="block py-2 px-4 hover:bg-gray-700">Bulk Price Update</a>
+                <a href="#orders" onclick="showPage('orders')" class="block py-2 px-4 hover:bg-gray-700">Orders</a>
+                <a href="#customers" onclick="showPage('customers')" class="block py-2 px-4 hover:bg-gray-700">Customers</a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-auto">
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="page p-6">
+                <h1 class="text-3xl font-bold mb-6">Dashboard</h1>
+                
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-gray-500 text-sm">Orders Today</h3>
+                        <p class="text-3xl font-bold" id="orders-today">0</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-gray-500 text-sm">Total Revenue</h3>
+                        <p class="text-3xl font-bold" id="total-revenue">$0</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-gray-500 text-sm">Total Products</h3>
+                        <p class="text-3xl font-bold" id="total-products">0</p>
+                    </div>
+                </div>
+
+                <!-- Chart -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h2 class="text-xl font-bold mb-4">Top Products</h2>
+                    <canvas id="topProductsChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- Products Page -->
+            <div id="products-page" class="page p-6 hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-3xl font-bold">Products</h1>
+                    <button onclick="showAddProductForm()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        Add Product
+                    </button>
+                </div>
+
+                <input
+                    type="text"
+                    id="product-search"
+                    placeholder="Search products..."
+                    onkeyup="searchProducts()"
+                    class="w-full p-3 border rounded mb-6"
+                />
+
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left">SKU</th>
+                                <th class="px-6 py-3 text-left">Name</th>
+                                <th class="px-6 py-3 text-left">Category</th>
+                                <th class="px-6 py-3 text-left">Price</th>
+                                <th class="px-6 py-3 text-left">Stock</th>
+                                <th class="px-6 py-3 text-left">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-table-body">
+                            <!-- Products will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Bulk Price Update Page -->
+            <div id="bulk-update-page" class="page p-6 hidden">
+                <h1 class="text-3xl font-bold mb-6">Bulk Price Update</h1>
+                
+                <form onsubmit="handleBulkUpdate(event)" class="bg-white p-6 rounded-lg shadow max-w-md">
+                    <div class="mb-4">
+                        <label class="block mb-2 font-medium">Search Keyword</label>
+                        <input
+                            type="text"
+                            id="bulk-keyword"
+                            placeholder="e.g., shampoo, loreal"
+                            class="w-full p-2 border rounded"
+                            required
+                        />
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block mb-2 font-medium">Change Type</label>
+                        <select id="bulk-change-type" class="w-full p-2 border rounded">
+                            <option value="percentage">Percentage</option>
+                            <option value="fixed">Fixed Price</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block mb-2 font-medium">Value</label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            id="bulk-value"
+                            class="w-full p-2 border rounded"
+                            required
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+                    >
+                        Update Prices
+                    </button>
+                </form>
+
+                <div id="bulk-result" class="mt-6"></div>
+            </div>
+
+            <!-- Orders Page -->
+            <div id="orders-page" class="page p-6 hidden">
+                <h1 class="text-3xl font-bold mb-6">Orders</h1>
+                
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left">Order #</th>
+                                <th class="px-6 py-3 text-left">Customer</th>
+                                <th class="px-6 py-3 text-left">Status</th>
+                                <th class="px-6 py-3 text-left">Total</th>
+                                <th class="px-6 py-3 text-left">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body">
+                            <!-- Orders will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Customers Page -->
+            <div id="customers-page" class="page p-6 hidden">
+                <h1 class="text-3xl font-bold mb-6">Customers</h1>
+                
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left">Name</th>
+                                <th class="px-6 py-3 text-left">Type</th>
+                                <th class="px-6 py-3 text-left">Email</th>
+                                <th class="px-6 py-3 text-left">Phone</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customers-table-body">
+                            <!-- Customers will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
